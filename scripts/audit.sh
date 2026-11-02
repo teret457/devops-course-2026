@@ -19,7 +19,7 @@ check 'UFW active' active "$(sudo env LC_ALL=C ufw status | awk '/^Status:/{prin
 check 'Incoming denied' yes "$(sudo env LC_ALL=C ufw status verbose | grep -q 'Default: deny (incoming)' && echo yes || echo no)"
 echo '[3] Accounts'
 awk -F: '$3>=1000 && $3<65534 {printf "    %s (uid=%s)\n",$1,$3}' /etc/passwd
-if [[ ${AUDIT_STAGE:-7} -ge 6 ]]; then
+if [[ ${AUDIT_STAGE:-8} -ge 6 ]]; then
  echo '[4] Web server'
  check 'Nginx active' active "$(systemctl is-active nginx)"
  check 'Nginx config valid' 0 "$(sudo nginx -t >/dev/null 2>&1; echo $?)"
@@ -27,13 +27,22 @@ if [[ ${AUDIT_STAGE:-7} -ge 6 ]]; then
  check 'No world-writable site files' '' "$(find /var/www/devops-site -perm -o+w -print)"
  check 'Private key permissions' 600 "$(sudo stat -c '%a' /etc/ssl/private/devops.key)"
 fi
-if [[ ${AUDIT_STAGE:-7} -ge 7 ]]; then
+if [[ ${AUDIT_STAGE:-8} -ge 7 ]]; then
  echo '[5] Containers'
  check 'Docker active' active "$(systemctl is-active docker)"
  DB_ID="$(docker compose --project-directory "$HOME/app" ps -q db)"
  check 'Database healthy' healthy "$(docker inspect -f '{{.State.Health.Status}}' "$DB_ID" 2>/dev/null)"
  check 'No public app or database listeners' '' "$(ss -H -tln | awk '$4 ~ /:(5000|5432)$/ && $4 !~ /^127\.0\.0\.1:/ {print $4}')"
  check 'App environment permissions' 600 "$(stat -c '%a' "$HOME/app/.env")"
+fi
+if [[ ${AUDIT_STAGE:-8} -ge 8 ]]; then
+ echo '[6] Control work 2'
+ REDIS_ID="$(docker compose --project-directory "$HOME/kr2" ps -q redis)"
+ check 'Redis healthy' healthy "$(docker inspect -f '{{.State.Health.Status}}' "$REDIS_ID" 2>/dev/null)"
+ check 'KR2 published only on loopback' '127.0.0.1:8002' "$(docker compose --project-directory "$HOME/kr2" port app 8002)"
+ check 'KR2 environment permissions' 600 "$(stat -c '%a' "$HOME/kr2/.env")"
+ check 'KR2 certificate valid 30 days' 0 "$(openssl x509 -in /etc/ssl/certs/kr2.crt -checkend 2592000 -noout >/dev/null 2>&1; echo $?)"
+ check 'KR2 site enabled' yes "$([[ -L /etc/nginx/sites-enabled/kr2 ]] && echo yes || echo no)"
 fi
 printf 'Passed: %s; failed: %s\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]

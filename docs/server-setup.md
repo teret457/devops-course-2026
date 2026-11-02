@@ -79,3 +79,13 @@ Docker Engine 29.9.2 установлен из https://download.docker.com/linux
 Nginx location /app/ использует proxy_pass http://127.0.0.1:5000/ и передаёт Host, X-Real-IP, X-Forwarded-For и X-Forwarded-Proto. Конфигурация сохранена в configs/devops-site.conf. Контроль: docker compose ps; docker compose exec -T app id; docker compose exec -T app getent hosts db; ss -tlnp; scripts/audit.sh.
 
 В режиме VirtualBox через Hyper-V наблюдались сообщения kernel soft lockup. Для завершения ресурсоёмких операций CPU 1 временно выведен offline через /sys/devices/system/cpu/cpu1/online. В параметрах VM остаются 2 vCPU; при перезагрузке ядро снова активируется. Обратная операция: echo 1 | sudo tee /sys/devices/system/cpu/cpu1/online. Этот обход не меняет настройки защиты Windows.
+
+## 10. Контрольная работа 2
+Вариант 2, номер 22: notes.devops.local, приложение 8002. Проект /home/devops/kr2, образ kr2-app:1.0, Redis redis:7-alpine, сеть kr2_backend, том kr2_redis_data. Порт приложения публикуется только на 127.0.0.1:8002, Redis не публикуется. Пароль REDIS_PASSWORD создаётся на сервере openssl rand -hex 16, файл /home/devops/kr2/.env имеет права 600 и не перезаписывается rsync. При доставке исключаются .env и .git.
+
+Nginx: /etc/nginx/sites-available/kr2 и ссылка sites-enabled/kr2, HTTP 301, HTTPS проксирует на 127.0.0.1:8002. Передаются Host, X-Real-IP, X-Forwarded-For, X-Forwarded-Proto. Сертификат /etc/ssl/certs/kr2.crt имеет SAN notes.devops.local и срок 365 дней, ключ /etc/ssl/private/kr2.key — root:root 600. На хост копируется только открытый сертификат. Конфигурация сохранена в репозитории КР как nginx/kr2.conf.
+
+Аудит расширен разделом [6]: healthy Redis, точная loopback публикация 8002, .env 600, сертификат не истекает 30 дней и сайт активирован. Правила UFW до и после КР совпадают. ПР 6 и 7 продолжают работать. Снимки 06-before-kr2 и 07-kr2 созданы. Ветка kr2/variant-2 оставлена открытым Pull Request без слияния до защиты.
+
+## 11. Проверка восстановления
+Из снимка 01-clean-install создан отдельный связанный клон devops-restore-check. На нём повторены создание devops и ключей, hardening SSH и настройка UFW. Аудит этапа 5 прошёл все 6 проверок. Рабочий стенд при проверке не откатывался и не прерывался. После проверки вспомогательный клон выключен.
