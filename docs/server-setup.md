@@ -70,3 +70,12 @@ sudo chmod 600 /etc/ssl/private/devops.key
 Сертификат копируется на хост в ~/devops.crt; закрытый ключ остаётся на сервере. HTTP на 80 возвращает return 301 https://$host$request_uri. HTTPS на 443 использует этот сертификат и TLSv1.2/TLSv1.3, root /var/www/devops-site, index index.html. Настроены error_page 404 /404.html и internal location = /404.html. Журналы: /var/log/nginx/devops-site.access.log и devops-site.error.log.
 
 Перед каждым применением: sudo nginx -t && sudo systemctl reload nginx. Доставка: scripts/deploy.sh [--dry-run]. Сценарий проверяет чистоту Git и index.html, вызывает rsync --delete --chmod=D755,F644 с BatchMode=yes, затем curl --fail --cacert ~/devops.crt. Аудит включает активность Nginx, синтаксис, остаточный срок сертификата 30 дней, отсутствие world-writable файлов и права ключа.
+
+## 9. Контейнеризация
+Docker Engine 29.9.2 установлен из https://download.docker.com/linux/ubuntu (suite noble, stable), пакеты docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin. Compose 5.7.0. Пользователь devops включён в docker; членство даёт фактические права root.
+
+Проект /home/devops/app содержит Dockerfile, app.py, requirements.txt, .dockerignore и docker-compose.yml. Серверный .env принадлежит devops, права 600; пароль PostgreSQL создаётся openssl rand -hex 16 и не копируется на хост. Сеть app_backend, том app_db_data. Приложение доступно только на 127.0.0.1:5000, PostgreSQL не публикуется. depends_on ожидает healthy базы. Политики перезапуска unless-stopped.
+
+Nginx location /app/ использует proxy_pass http://127.0.0.1:5000/ и передаёт Host, X-Real-IP, X-Forwarded-For и X-Forwarded-Proto. Конфигурация сохранена в configs/devops-site.conf. Контроль: docker compose ps; docker compose exec -T app id; docker compose exec -T app getent hosts db; ss -tlnp; scripts/audit.sh.
+
+В режиме VirtualBox через Hyper-V наблюдались сообщения kernel soft lockup. Для завершения ресурсоёмких операций CPU 1 временно выведен offline через /sys/devices/system/cpu/cpu1/online. В параметрах VM остаются 2 vCPU; при перезагрузке ядро снова активируется. Обратная операция: echo 1 | sudo tee /sys/devices/system/cpu/cpu1/online. Этот обход не меняет настройки защиты Windows.
