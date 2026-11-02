@@ -89,3 +89,8 @@ Nginx: /etc/nginx/sites-available/kr2 и ссылка sites-enabled/kr2, HTTP 30
 
 ## 11. Проверка восстановления
 Из снимка 01-clean-install создан отдельный связанный клон devops-restore-check. На нём повторены создание devops и ключей, hardening SSH и настройка UFW. Аудит этапа 5 прошёл все 6 проверок. Рабочий стенд при проверке не откатывался и не прерывался. После проверки вспомогательный клон выключен.
+
+
+## Final recovery after Windows restart
+
+VirtualBox was upgraded to 7.2.4. The current disk state booted with both vCPUs online and CPU execution cap 100. A pause/resume was still needed to finish boot under Hyper-V; this compatibility limitation remains. Both Compose projects restarted automatically, counters persisted, and the final audit passed 20/20 when invoked with the devops home directory and sudo privileges. Host TLS checks returned curl 60 without the trusted CA and with the wrong CA; direct external access to port 8002 timed out (28). The final 07-kr2 snapshot was created offline after a clean guest shutdown. The interrupted older live snapshot is labeled 07-incomplete-live-snapshot and is not a verified restore point.
