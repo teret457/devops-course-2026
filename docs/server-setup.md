@@ -58,3 +58,15 @@ sudo ufw status verbose
 
 ## 7. Снимки состояния
 01-clean-install: установленная Ubuntu до создания devops. 02-keys-configured: пользователь и ключи. 03-ssh-hardened: защищённый SSH, нестандартный порт. 04-nginx-https: Nginx с HTTPS. 05-docker-compose: приложение и PostgreSQL. 06-before-kr2: готовый стенд перед КР. 07-kr2: итог КР. Снимки создаются по достижении соответствующего этапа.
+
+## 8. Веб-сервер
+Установка: sudo apt update && sudo apt install nginx rsync openssl. systemctl enable --now nginx. Ресурс: /etc/nginx/sites-available/devops-site, ссылка в /etc/nginx/sites-enabled/. Стандартная ссылка default отключена. Каталог /var/www/devops-site принадлежит devops:devops, права каталогов 755, файлов 644; www-data читает без записи.
+
+Сертификат /etc/ssl/certs/devops.crt (644), ключ /etc/ssl/private/devops.key (root:root, 600). Создание на 365 дней:
+```bash
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/devops.key -out /etc/ssl/certs/devops.crt -subj '/CN=devops.local' -addext 'subjectAltName=DNS:devops.local'
+sudo chmod 600 /etc/ssl/private/devops.key
+```
+Сертификат копируется на хост в ~/devops.crt; закрытый ключ остаётся на сервере. HTTP на 80 возвращает return 301 https://$host$request_uri. HTTPS на 443 использует этот сертификат и TLSv1.2/TLSv1.3, root /var/www/devops-site, index index.html. Настроены error_page 404 /404.html и internal location = /404.html. Журналы: /var/log/nginx/devops-site.access.log и devops-site.error.log.
+
+Перед каждым применением: sudo nginx -t && sudo systemctl reload nginx. Доставка: scripts/deploy.sh [--dry-run]. Сценарий проверяет чистоту Git и index.html, вызывает rsync --delete --chmod=D755,F644 с BatchMode=yes, затем curl --fail --cacert ~/devops.crt. Аудит включает активность Nginx, синтаксис, остаточный срок сертификата 30 дней, отсутствие world-writable файлов и права ключа.
