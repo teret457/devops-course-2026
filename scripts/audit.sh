@@ -19,7 +19,7 @@ check 'UFW active' active "$(sudo env LC_ALL=C ufw status | awk '/^Status:/{prin
 check 'Incoming denied' yes "$(sudo env LC_ALL=C ufw status verbose | grep -q 'Default: deny (incoming)' && echo yes || echo no)"
 echo '[3] Accounts'
 awk -F: '$3>=1000 && $3<65534 {printf "    %s (uid=%s)\n",$1,$3}' /etc/passwd
-if [[ ${AUDIT_STAGE:-5} -ge 6 ]]; then
+if [[ ${AUDIT_STAGE:-6} -ge 6 ]]; then
  echo '[4] Web server'
  check 'Nginx active' active "$(systemctl is-active nginx)"
  check 'Nginx config valid' 0 "$(sudo nginx -t >/dev/null 2>&1; echo $?)"
@@ -27,7 +27,7 @@ if [[ ${AUDIT_STAGE:-5} -ge 6 ]]; then
  check 'No world-writable site files' '' "$(find /var/www/devops-site -perm -o+w -print)"
  check 'Private key permissions' 600 "$(sudo stat -c '%a' /etc/ssl/private/devops.key)"
 fi
-if [[ ${AUDIT_STAGE:-5} -ge 7 ]]; then
+if [[ ${AUDIT_STAGE:-6} -ge 7 ]]; then
  echo '[5] Containers'
  check 'Docker active' active "$(systemctl is-active docker)"
  DB_ID="$(docker compose --project-directory "$HOME/app" ps -q db)"
