@@ -12,7 +12,7 @@ SSHD="$(sudo sshd -T)"
 value() { awk -v k="$1" '$1==k {print $2;exit}' <<<"$SSHD"; }
 check 'Root login disabled' no "$(value permitrootlogin)"
 check 'Password authentication disabled' no "$(value passwordauthentication)"
-check 'Nonstandard SSH port' yes "$([[ $(value port) != 22 ]] && echo yes || echo no)"
+check 'Nonstandard SSH port' yes "$([[ $(value port) =~ ^[0-9]+$ && $(value port) != 22 ]] && echo yes || echo no)"
 check 'MaxAuthTries' 3 "$(value maxauthtries)"
 echo '[2] Firewall'
 check 'UFW active' active "$(sudo env LC_ALL=C ufw status | awk '/^Status:/{print $2}')"
