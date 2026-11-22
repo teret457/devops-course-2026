@@ -101,3 +101,8 @@ VirtualBox was upgraded to 7.2.4. The current disk state booted with both vCPUs 
 ПР11 выполнена на devops-vm после возврата к01-clean-install. Старые работы сохранены в08-before-ansible. Control: WSL /home/artem/devops-course-2026/ansible. Managed: Ubuntu24.04amd64,192.168.56.101. Bootstrap student:key + sudo password; prod devops:key + NOPASSWD. Роли base,ssh,nginx,app. Порт22,80; приложение127.0.0.1:5000. Проверенный образ ghcr.io/teret457/devops-ci-app:a494b65f57195752753a945202f9ddcfa78e09bb
 
 Команды: ansible-playbook -i inventory/bootstrap.ini site.yml --ask-become-pass; ansible-playbook site.yml; ansible-playbook verify.yml. Повторный запуск changed=0. Drift удаление контейнера/неверный порт Nginx устранён плейбуком. Несуществующий SHA отвергнут до замены контейнера. Пароли и закрытые ключи не хранятся в проекте.
+
+
+### Host compatibility after the final restart
+
+VirtualBox7.2.4 under Hyper-V again showed kernel soft lockups with2vCPUs during the final cold boot. The verified offline09-ansible-prometheus snapshot preserved all data. Restored that snapshot and changed only VM CPU count to1. Ubuntu booted; the application health returnedok and both Prometheus targets returnedup1. Windows security settings were not disabled. Earlier coursework5-8 is preserved in08-before-ansible. Current SSH is22 on Host-only, forwarded from Windows127.0.0.1:2222.
