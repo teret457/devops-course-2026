@@ -1,0 +1,6 @@
+---
+app_image: "ghcr.io/teret457/devops-ci-app"
+app_tag: "a494b65f57195752753a945202f9ddcfa78e09bb"
+app_container_name: "devops-ci-app"
+app_host_port: 5000
+app_internal_port: 5000
