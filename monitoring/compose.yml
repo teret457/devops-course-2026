@@ -1,0 +1,16 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    ports: ["127.0.0.1:9090:9090"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+  hashbrowns:
+    build: ./hash-browns
+    image: hash-browns:pr12
+    command: []
+    ports: ["127.0.0.1:8080:8080"]
+    restart: unless-stopped
+volumes:
+  prometheus_data:
