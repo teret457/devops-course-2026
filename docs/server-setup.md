@@ -94,3 +94,10 @@ Nginx: /etc/nginx/sites-available/kr2 и ссылка sites-enabled/kr2, HTTP 30
 ## Final recovery after Windows restart
 
 VirtualBox was upgraded to 7.2.4. The current disk state booted with both vCPUs online and CPU execution cap 100. A pause/resume was still needed to finish boot under Hyper-V; this compatibility limitation remains. Both Compose projects restarted automatically, counters persisted, and the final audit passed 20/20 when invoked with the devops home directory and sudo privileges. Host TLS checks returned curl 60 without the trusted CA and with the wrong CA; direct external access to port 8002 timed out (28). The final 07-kr2 snapshot was created offline after a clean guest shutdown. The interrupted older live snapshot is labeled 07-incomplete-live-snapshot and is not a verified restore point.
+
+
+## 10. Ansible
+
+ПР11 выполнена на devops-vm после возврата к01-clean-install. Старые работы сохранены в08-before-ansible. Control: WSL /home/artem/devops-course-2026/ansible. Managed: Ubuntu24.04amd64,192.168.56.101. Bootstrap student:key + sudo password; prod devops:key + NOPASSWD. Роли base,ssh,nginx,app. Порт22,80; приложение127.0.0.1:5000. Проверенный образ ghcr.io/teret457/devops-ci-app:a494b65f57195752753a945202f9ddcfa78e09bb
+
+Команды: ansible-playbook -i inventory/bootstrap.ini site.yml --ask-become-pass; ansible-playbook site.yml; ansible-playbook verify.yml. Повторный запуск changed=0. Drift удаление контейнера/неверный порт Nginx устранён плейбуком. Несуществующий SHA отвергнут до замены контейнера. Пароли и закрытые ключи не хранятся в проекте.
