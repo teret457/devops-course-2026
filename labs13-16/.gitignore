@@ -1,0 +1,7 @@
+**/.secrets.json
+**/.db.env
+**/system.yaml
+**/.docker-auth/
+**/kubeconfig*
+**/__pycache__/
+.private*

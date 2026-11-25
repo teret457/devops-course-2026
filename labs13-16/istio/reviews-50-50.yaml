@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+  namespace: lab15
+spec:
+  hosts: [reviews]
+  http:
+    - route:
+        - destination: {host: reviews, subset: v1}
+          weight: 50
+        - destination: {host: reviews, subset: v3}
+          weight: 50
